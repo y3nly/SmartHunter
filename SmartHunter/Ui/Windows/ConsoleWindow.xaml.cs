@@ -35,17 +35,13 @@ namespace SmartHunter.Ui.Windows
                 Visible = true
             };
 
-            Closed += (s, e) => TrayIcon?.Dispose();
+            Closed += (s, e) => TrayIcon.Dispose();
 
-            var contextMenu = new System.Windows.Forms.ContextMenuStrip();
-            contextMenu.Items.Add("E&xit");
+            var contextMenu = new System.Windows.Forms.ContextMenu();
+            contextMenu.MenuItems.Add("E&xit", (s, e) => Close());
+            TrayIcon.ContextMenu = contextMenu;
 
-            if (contextMenu == null)
-            {
-                System.Diagnostics.Debug.Fail("contextMenu is null");
-            }
-
-            TrayIcon.DoubleClick += (sender, e) =>
+            TrayIcon.DoubleClick += (s, e) =>
             {
                 if (IsEnabled)
                 {
