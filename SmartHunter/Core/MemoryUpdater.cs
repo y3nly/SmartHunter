@@ -5,8 +5,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using Octokit;
 using System.Net;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.IO;
+using SmartHunter.Core.Helpers;
 
 namespace SmartHunter.Core
 {
@@ -50,54 +53,10 @@ namespace SmartHunter.Core
             m_DispatcherTimer.Start();
         }
 
-        private static bool CheckForInternetConnection()
-        {
-            try
-            {
-                using (var client = new WebClient())
-                using (client.OpenRead("http://google.com/generate_204"))
-                    return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        private async Task<bool> CheckForUpdates()
-        {
-            if (CheckForInternetConnection() == false)
-            {
-                return false;
-            }
-
-            var client = new GitHubClient(new ProductHeaderValue("SmartHunter"));
-
-            var repo = await client.Repository.Get("gabrielefilipp", "SmartHunter");
-
-            string[] files = new string[3] { "1", "SmartHunter/Game/Config/MonsterDataConfig.cs", "SmartHunter/Game/Config/LocalizationConfig.cs" }; 
-
-            var path = "SmartHunter/Game/Config/MonsterDataConfig.cs";
-            var branch = "Peppa";
-
-            var request = new CommitRequest { Path = path, Sha = branch };
-
-            // find the latest commit to the file on a specific branch
-            var commitsForFile = await client.Repository.Commit.GetAll(repo.Id, request);
-            var mostRecentCommit = commitsForFile[0];
-            var authorDate = mostRecentCommit.Commit.Author.Date;
-            var fileEditDate = authorDate.LocalDateTime;
-
-            // get the download URL for this file on a specific branch
-            var file = await client.Repository.Content.GetAllContentsByRef(repo.Id, path, branch);
-            var downloadUrl = file[0].DownloadUrl;
-
-            Console.WriteLine($"File ${path} was last edited at ${fileEditDate} and has URL ${downloadUrl}");
-            return true;
-        }
-
         void CreateStateMachine()
         {
+            var updater = new Updater();
+
             m_StateMachine = new StateMachine<State>();
 
             m_StateMachine.Add(State.None, new StateMachine<State>.StateData(
@@ -109,7 +68,7 @@ namespace SmartHunter.Core
                         () => true,
                         () =>
                         {
-                            Initialize();
+                            
                         })
                 }));
 
@@ -118,28 +77,24 @@ namespace SmartHunter.Core
                 new StateMachine<State>.Transition[]
                 {
                     new StateMachine<State>.Transition(
-                        State.DownloadingUpdates,
+                        State.WaitingForProcess,
                         () =>
                         {
-                            var checking = CheckForUpdates();
-                            checking.Wait();
-                            return checking.Result;
+                            return !updater.CheckForUpdates();
                         },
                         () =>
                         {
 
                         }),
                     new StateMachine<State>.Transition(
-                        State.WaitingForProcess,
+                        State.DownloadingUpdates,
                         () =>
                         {
-                            var checking = CheckForUpdates();
-                            checking.Wait();
-                            return !checking.Result;
+                            return updater.CheckForUpdates();
                         },
                         () =>
                         {
-                            
+                            Initialize();
                         })
                 }));
 
