@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Octokit;
+using System.Net;
 
 namespace SmartHunter.Core
 {
@@ -12,6 +15,9 @@ namespace SmartHunter.Core
         enum State
         {
             None,
+            CheckingForUpdates,
+            DownloadingUpdates,
+            Restarting,
             WaitingForProcess,
             ProcessFound,
             PatternScanning,
@@ -44,6 +50,52 @@ namespace SmartHunter.Core
             m_DispatcherTimer.Start();
         }
 
+        private static bool CheckForInternetConnection()
+        {
+            try
+            {
+                using (var client = new WebClient())
+                using (client.OpenRead("http://google.com/generate_204"))
+                    return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private async Task<bool> CheckForUpdates()
+        {
+            if (CheckForInternetConnection() == false)
+            {
+                return false;
+            }
+
+            var client = new GitHubClient(new ProductHeaderValue("SmartHunter"));
+
+            var repo = await client.Repository.Get("gabrielefilipp", "SmartHunter");
+
+            string[] files = new string[3] { "1", "SmartHunter/Game/Config/MonsterDataConfig.cs", "SmartHunter/Game/Config/LocalizationConfig.cs" }; 
+
+            var path = "SmartHunter/Game/Config/MonsterDataConfig.cs";
+            var branch = "Peppa";
+
+            var request = new CommitRequest { Path = path, Sha = branch };
+
+            // find the latest commit to the file on a specific branch
+            var commitsForFile = await client.Repository.Commit.GetAll(repo.Id, request);
+            var mostRecentCommit = commitsForFile[0];
+            var authorDate = mostRecentCommit.Commit.Author.Date;
+            var fileEditDate = authorDate.LocalDateTime;
+
+            // get the download URL for this file on a specific branch
+            var file = await client.Repository.Content.GetAllContentsByRef(repo.Id, path, branch);
+            var downloadUrl = file[0].DownloadUrl;
+
+            Console.WriteLine($"File ${path} was last edited at ${fileEditDate} and has URL ${downloadUrl}");
+            return true;
+        }
+
         void CreateStateMachine()
         {
             m_StateMachine = new StateMachine<State>();
@@ -53,11 +105,54 @@ namespace SmartHunter.Core
                 new StateMachine<State>.Transition[]
                 {
                     new StateMachine<State>.Transition(
-                        State.WaitingForProcess,
+                        State.CheckingForUpdates,
                         () => true,
                         () =>
                         {
                             Initialize();
+                        })
+                }));
+
+            m_StateMachine.Add(State.CheckingForUpdates, new StateMachine<State>.StateData(
+                null,
+                new StateMachine<State>.Transition[]
+                {
+                    new StateMachine<State>.Transition(
+                        State.DownloadingUpdates,
+                        () =>
+                        {
+                            var checking = CheckForUpdates();
+                            checking.Wait();
+                            return checking.Result;
+                        },
+                        () =>
+                        {
+
+                        }),
+                    new StateMachine<State>.Transition(
+                        State.WaitingForProcess,
+                        () =>
+                        {
+                            var checking = CheckForUpdates();
+                            checking.Wait();
+                            return !checking.Result;
+                        },
+                        () =>
+                        {
+                            
+                        })
+                }));
+
+            m_StateMachine.Add(State.DownloadingUpdates, new StateMachine<State>.StateData(
+                null,
+                new StateMachine<State>.Transition[]
+                {
+                    new StateMachine<State>.Transition(
+                        State.Restarting,
+                        () => true,
+                        () =>
+                        {
+
                         })
                 }));
 
@@ -189,7 +284,7 @@ namespace SmartHunter.Core
             if (processExited && ShutdownWhenProcessExits)
             {
                 Log.WriteLine("Process exited. Shutting down.");
-                Application.Current.Shutdown();
+                System.Windows.Application.Current.Shutdown();
             }
         }
 
