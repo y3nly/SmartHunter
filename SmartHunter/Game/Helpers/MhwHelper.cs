@@ -61,7 +61,7 @@ namespace SmartHunter.Game.Helpers
                 public static readonly ulong MaxHealth = 0x0C;
                 public static readonly ulong CurrentHealth = 0x10;
                 public static readonly ulong TimesBrokenCount = 0x18;
-                public static readonly ulong NextPart = 0x3F0;
+                public static readonly ulong NextPart = 0x1F8;//0x3F0;
             }
 
             public static class MonsterRemovablePartCollection
@@ -255,7 +255,14 @@ namespace SmartHunter.Game.Helpers
 
             List<ulong> monsterAddresses = new List<ulong>();
 
-            ulong firstMonster = monsterBaseList + DataOffsets.Monster.MonsterStartOfStructOffset;
+            ulong firstMonster = MemoryHelper.Read<ulong>(process, monsterBaseList + DataOffsets.Monster.PreviousMonsterOffset);
+
+            if (firstMonster == 0x0)
+            {
+                firstMonster = monsterBaseList;// + DataOffsets.Monster.MonsterStartOfStructOffset;
+            }
+
+            firstMonster += DataOffsets.Monster.MonsterStartOfStructOffset;
 
             ulong currentMonsterAddress = firstMonster;
             while (currentMonsterAddress != 0)
@@ -324,10 +331,20 @@ namespace SmartHunter.Game.Helpers
                  * 3)Max duration ?
                  * 4)Each struct is double linked -> 0x8 -> base pointer; 0x10 ->previous pointer; 0x18 is next pointer;
                  * 
+                 * 
+                */
+                /*
+                var p = MemoryHelper.ReadMultiLevelPointer(false, process, monsterAddress + 0xF0, 0x198, 0x0);
+                var p1 = MemoryHelper.ReadMultiLevelPointer(false, process, monsterAddress + 0x10, 0x100, 0x128, 0x0);
+                var p2 = MemoryHelper.ReadMultiLevelPointer(false, process, monsterAddress + 0x10, 0xF8, 0xF8, 0x0);
+                
+
                 var t = MemoryHelper.Read<ulong>(process, monsterAddress + DataOffsets.Monster.MonsterStartOfStructOffset + 0x78);
                 var t1 = MemoryHelper.Read<ulong>(process, t + 0x57A8);
 
                 t1 = MemoryHelper.ReadMultiLevelPointer(false, process, t1 + 0x18, 0x18, 0x0); //With this i can get the base pointer for the status double linked list, my main problem is to identify to which monster this is attached to as every monster points to the same address (for now)
+
+                var wut = MemoryHelper.ReadMultiLevelPointer(false, process, monsterAddress + DataOffsets.Monster.MonsterStartOfStructOffset + 0x78, 0x57A8, 0x18, 0x18, 0x0);
 
                 //Ignore from this line as this was only for testing
 
@@ -343,8 +360,10 @@ namespace SmartHunter.Game.Helpers
                     t2 = MemoryHelper.Read<ulong>(process, t2 + DataOffsets.Monster.NextMonsterOffset);
                     i++;
                 }
+
                 */
 
+                // TODO: I think here we can check if the current player is the host of the party, as if's not there's no point on updating monster parts (cause only the host of the party will see those parts)
                 UpdateMonsterParts(process, monster);
                 UpdateMonsterRemovableParts(process, monster);
                 UpdateMonsterStatusEffects(process, monster);
@@ -374,14 +393,9 @@ namespace SmartHunter.Game.Helpers
 
                     float maxHealth = MemoryHelper.Read<float>(process, currentPartAddress + DataOffsets.MonsterPart.MaxHealth);
 
-                    // Read until we reach an element that has a max health of 0, which is presumably the end of the collection
                     if (maxHealth > 0)
                     {
                         UpdateMonsterPart(process, monster, currentPartAddress);
-                    }
-                    else
-                    {
-                        break;
                     }
                 }
             }
