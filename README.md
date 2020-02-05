@@ -4,7 +4,7 @@ A complete overlay for Monster Hunter: World on PC. Distributed on [Nexus Mods](
 
 - Monster widget - name, health, parts, status effect buildup, and crown.
 - Team widget - name and damage meters.
-- Player widget - buff, debuff, and equipment/mantle timers.
+- Player widget - buff, debuff, and equipment/mantle timers (NOT working for now).
 - Open source - freely learn from and contribute to the project.
 - Skinnable - create and distribute your own rich styles and animations with XAML.
 - Easy localization - create and distribute your own translations for our international friends.
@@ -16,9 +16,9 @@ A complete overlay for Monster Hunter: World on PC. Distributed on [Nexus Mods](
 
 ## How to install
 
-- Download `SmartHunter.exe` and `Newtonsoft.Json.dll` from here https://github.com/gabrielefilipp/SmartHunter/tree/master/SmartHunter/bin/x64/Debug.
+- Download `SmartHunter.exe` and `Newtonsoft.Json.dll` from here https://github.com/gabrielefilipp/SmartHunter/tree/master/SmartHunter/bin/Debug.
 - Place them in a new folder.
-- IMPORTANT: If you are replacing the new `.exe` in the same folder of the old SmartHunter please REMEMBER to delete `Config.json`.
+- IMPORTANT: If you are replacing the new `.exe` in the same folder of the old SmartHunter please just follow the instructions `## How to update`.
 - You're ready for the hunt.
 
 ## How to use
@@ -33,6 +33,7 @@ A complete overlay for Monster Hunter: World on PC. Distributed on [Nexus Mods](
 - Following the commit https://github.com/gabrielefilipp/SmartHunter/commit/305b8a55eb4cd40c31a06a30ab862b4f803baa84 I've added an AutoUpdater module to this Application.
 - To enable this feature just set the key 'AutomaticallyCheckAndDownloadUpdates' to 'true', if present, otherwise just add it, to the file `Config.json`.
 - NOTE that this feature is already active if it's the first time you follow the "How to install" steps and download the mentioned files in a new directory.
+- To force an update just delete the file `Versions.json` and restart the application.
 
 ## How to create and use new localizations
 

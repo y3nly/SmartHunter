@@ -1,4 +1,4 @@
-﻿using SmartHunter.Core;
+using SmartHunter.Core;
 using SmartHunter.Core.Helpers;
 using SmartHunter.Game.Data.ViewModels;
 using SmartHunter.Game.Helpers;
@@ -11,7 +11,6 @@ namespace SmartHunter.Game
         BytePattern m_PlayerDamagePattern = new BytePattern(ConfigHelper.Memory.Values.PlayerDamagePattern);
         BytePattern m_PlayerNamePattern = new BytePattern(ConfigHelper.Memory.Values.PlayerNamePattern);
         BytePattern m_MonsterPattern = new BytePattern(ConfigHelper.Memory.Values.MonsterPattern);
-        BytePattern m_MonsterOffsetPattern = new BytePattern(ConfigHelper.Memory.Values.MonsterOffsetPattern);
         BytePattern m_PlayerBuffPattern = new BytePattern(ConfigHelper.Memory.Values.PlayerBuffPattern);
 
         protected override string ProcessName
@@ -39,7 +38,6 @@ namespace SmartHunter.Game
                     m_PlayerDamagePattern,
                     m_PlayerNamePattern,
                     m_MonsterPattern,
-                    //m_MonsterOffsetPattern,
                     //m_PlayerBuffPattern
                 };
             }
@@ -75,47 +73,25 @@ namespace SmartHunter.Game
             if (ConfigHelper.Main.Values.Overlay.MonsterWidget.IsVisible)
             {
                 /*
-                var range = new AddressRange(0x140000000, 0x163B0A000);
-                var pattern = new BytePattern(new Config.BytePatternConfig("48 8b ?? ?? ?? ??", "140000000", "163B0A000", null));
+                var range = new AddressRange(0x140000000, 0x140001000);//0x163B0A000);
+                //var pattern = new BytePattern(new Config.BytePatternConfig("48 8B 05 ?? ?? ?? ?? 41 8B", "140000000", "163B0A000", null));
 
-                System.Collections.Generic.List<ulong> matches = MemoryHelper.FindPatternAddresses(Process, range, pattern, false);
+                var pattern = new BytePattern(new Config.BytePatternConfig("48 8B 05 ?? ?? ?? ?? 41 8B", "140000000", "163B0A000", null));
 
-                System.Collections.Generic.List<ulong> res = new System.Collections.Generic.List<ulong>();
+                var matches = MemoryHelper.FindPatternAddresses(Process, range, pattern, false);
+
+                var res = new System.Collections.Generic.List<ulong>();
 
                 foreach (ulong address in matches)
                 {
                     ulong lear = MemoryHelper.LoadEffectiveAddressRelative(Process, address);
-                    if (lear == 0x144e0c8d0 || lear == 0x144e0caf0)// || lear == 0x144ee4630)// || lear == 0x144e437d0)
+                    if (lear == 0x144C77498 || lear == 0x144CE4150 || lear == 0x144CEA750)// || lear == 0x144ee4630)// || lear == 0x144e437d0)
                     {
                         res.Add(address);
                     }
                 }
-
-
-                //0x140224589
-
-                ulong offset_for_next = 0x18;
-                ulong offset_for_start_monster_struct = 0x40;
-                ulong offset_for_component = 0x7670;
-                while (true)
-                {
-                    ulong ptr = 0x211a80e80;//0x2196f0e80;
-                    while (ptr != 0)
-                    {
-                        ulong health_component = MemoryHelper.Read<ulong>(Process, ptr + offset_for_start_monster_struct + offset_for_component);
-                        ulong tmp = ptr + offset_for_start_monster_struct + offset_for_component + 0x179;
-                        string name = MemoryHelper.ReadString(Process, tmp, 32);
-                        float current = MemoryHelper.Read<float>(Process, health_component + 0x60);
-                        float max = MemoryHelper.Read<float>(Process, health_component + 0x64);
-                        ptr = MemoryHelper.Read<ulong>(Process, ptr + offset_for_next);
-                    }
-                }
                 */
-
-                //the instructions commented sometimes return the right address (q.q)
-
                 var monsterRootPtr = MemoryHelper.LoadEffectiveAddressRelative(Process, m_MonsterPattern.MatchedAddresses.First()) - 0x36CE0;//MemoryHelper.LoadEffectiveAddressRelative(Process, m_MonsterPattern.MatchedAddresses.First());
-                //var monsterOffset = MemoryHelper.ReadStaticOffset(Process, m_MonsterOffsetPattern.MatchedAddresses.First());
                 var monsterBaseList = MemoryHelper.ReadMultiLevelPointer(traceUniquePointers, Process, monsterRootPtr, 0x128, 0x8, 0x0);//MemoryHelper.ReadMultiLevelPointer(traceUniquePointers, Process, monsterRootPtr, monsterOffset, 0x18, 0xD0, 0xC8, 0x738, 0x8, 0x0);
 
                 MhwHelper.UpdateMonsterWidget(Process, monsterBaseList);
@@ -145,7 +121,7 @@ namespace SmartHunter.Game
 
                 // The local player is guaranteed to be the last item in the list,
                 // So, keep reading each pointer in the collection until we reach null
-                var buffPtr = MemoryHelper.ReadMultiLevelPointer(traceUniquePointers, Process, playerBuffRootPtr, 0X9B0 + 0XC8, 0);
+                var buffPtr = MemoryHelper.ReadMultiLevelPointer(traceUniquePointers, Process, playerBuffRootPtr, 0x9B0 + 0xC8, 0); // 0xA78
                 ulong lastBuffAddress = 0;
                 ulong currentBuffAddress = MemoryHelper.Read<ulong>(Process, buffPtr);
                 while (currentBuffAddress != 0)
