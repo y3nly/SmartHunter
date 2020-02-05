@@ -796,7 +796,7 @@
                             <ColumnDefinition Width="3*"/>
                             <ColumnDefinition Width="7*"/>
                         </Grid.ColumnDefinitions>
-                        <Border BorderBrush="White" HorizontalAlignment="Right" BorderThickness="1" Grid.Column="0" Opacity="0.8">
+                        <Border BorderBrush="White" HorizontalAlignment="Right" BorderThickness="1" Grid.Column="0" Opacity="0.4">
                         </Border>
 
                         <Grid HorizontalAlignment="Center" Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="0 2 0 0">
