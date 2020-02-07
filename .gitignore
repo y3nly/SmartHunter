@@ -6,3 +6,5 @@ obj/
 # allow for auto updates
 !SmartHunter/bin/Debug/Newtonsoft.Json.dll
 !SmartHunter/bin/Debug/SmartHunter.exe
+
+SmartHunter/bin/
