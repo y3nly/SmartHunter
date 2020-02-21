@@ -992,16 +992,11 @@
         <Grid x:Name="Root">
             <ContentControl x:Name="Bar" Content="{Binding BarFraction}" ContentTemplate="{StaticResource A_DataTemplate_BarProgress}" Foreground="#000000"/>
 
-            <Grid Margin="6 5 6 4" Name="FightDescriptionContainer">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                
-                <TextBlock Margin="4,2,4,2" Text="{Binding Name}" Style="{StaticResource A_Style_TextBlock_Standard}" Foreground="{StaticResource A_Brush_DropShadow}" RenderTransform="{StaticResource A_Transform_DropShadow}" />
-                <TextBlock Margin="4,2,4,2" Text="{Binding Name}" Style="{StaticResource A_Style_TextBlock_Standard}" />
+            <DockPanel Margin="6 5 6 4">
+                <Grid>
+                    <TextBlock Text="{Binding Name}" Style="{StaticResource A_Style_TextBlock_Standard}" Foreground="{StaticResource A_Brush_DropShadow}" RenderTransform="{StaticResource A_Transform_DropShadow}" />
+                    <TextBlock Text="{Binding Name}" Style="{StaticResource A_Style_TextBlock_Standard}" />
+                </Grid>
 
                 <Grid x:Name="DescriptionContainer" HorizontalAlignment="Right" Margin="12 0 0 0">
                     <TextBlock x:Name="DescriptionBlockShadow" Style="{StaticResource A_Style_TextBlock_Standard}" Foreground="{StaticResource A_Brush_DropShadow}" RenderTransform="{StaticResource A_Transform_DropShadow}">
